@@ -30,7 +30,12 @@ async function run() {
 
         // mongodb collection
         const menuCollection = client.db("bistroDB").collection("menu");
+        const reviewCollection = client.db("bistroDB").collection('reviews');
 
+
+        /* ********************************
+        Menu Collection
+        ******************************** */
         app.get("/menu", async (req, res) => {
             try {
                 const result = await menuCollection.find().toArray();
@@ -69,6 +74,18 @@ async function run() {
         })
 
 
+        /* ********************************
+        Review Collection
+        ******************************** */
+        app.get("/reviews", async (req, res) => {
+            try {
+                const result = await reviewCollection.find().toArray();
+                res.send(result);
+            }
+            catch (err) {
+                res.status(500).send("Internal Server Error");
+            }
+        })
 
 
 
