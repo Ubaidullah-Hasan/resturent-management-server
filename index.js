@@ -44,7 +44,7 @@ async function run() {
             try {
                 const options = {
                     // Include only the `category` fields in each returned document
-                    projection: { _id: 0, category: 1 },
+                    projection: { category: 1 },
                 };
 
                 const allItems = await menuCollection.find({}, options).toArray();
@@ -55,6 +55,18 @@ async function run() {
                 res.status(500).send("Internal Server Error");
             }
         });
+
+        app.get("/categories/:categoryName", async (req, res) => {
+            const categoryName = req.params.categoryName;
+            const query = { category: categoryName };
+            try {
+                const result = await menuCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.error("Error fetching distinct categories:", err);
+                res.status(500).send("Internal Server Error");
+            }
+        })
 
 
 
