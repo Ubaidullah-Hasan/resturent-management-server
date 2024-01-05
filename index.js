@@ -45,6 +45,21 @@ async function run() {
             }
         })
 
+        app.get('/menuLimit', async (req, res) => {
+            const limit = parseInt(req.query.limit) || 5;
+            const page = parseInt(req.query.page) || 1;
+            const skip = (page - 1) * limit;
+
+            try {
+                const result = await menuCollection.find().limit(limit).skip(skip).toArray();
+                res.json(result);
+            }
+            catch (err) {
+                console.error('\n\n route: /menuLimit', err);
+                res.status(500).json({ message: 'Error fetching limited menu'});
+            }
+        })
+
         app.get("/categories", async (req, res) => {
             try {
                 const options = {
