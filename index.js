@@ -65,35 +65,36 @@ async function run() {
         app.get("/categories/:categoryName", async (req, res) => {
             const categoryName = req.params.categoryName;
             const query = { category: categoryName };
-            try {
-                const result = await menuCollection.find(query).toArray();
-                res.send(result);
-            } catch (err) {
-                console.error("Error fetching distinct categories:", err);
-                res.status(500).send("Internal Server Error");
-            }
-        })
 
-        app.get('/categoryLimitItems', async (req, res) => {
-            const limit = parseInt(req.query.limit) || 5;
+            // for limit query start
+            const limit = parseInt(req.query.limit) || 0;
             const page = parseInt(req.query.page) || 1;
             const skip = (page - 1) * limit;
+            // for limit query end
 
             try {
-                const result = await menuCollection.find().limit(limit).skip(skip).toArray();
-                res.json(result);
-            }
-            catch (err) {
-                console.error('\n\n route: /menuLimit', err);
-                res.status(500).json({ message: 'Error fetching limited menu' });
+                if (limit) {
+                    // for limit query and also params
+                    const result = await menuCollection.find(query).skip(skip).limit(limit).toArray();
+                    res.json(result);
+
+                } else {
+                    // for only params
+                    const result = await menuCollection.find(query).toArray();
+                    res.send(result);
+                }
+
+            } catch (err) {
+                console.error("\n\n/categories/:categoryName", err);
+                res.status(500).send("Error fetching category items ");
             }
         })
 
 
         app.get('/totalCount/:categoryItems', async (req, res) => {
             const categoryItems = req.params.categoryItems;
-            const query = { category:  categoryItems};
-            
+            const query = { category: categoryItems };
+
             try {
                 const menuCount = await menuCollection.countDocuments();
                 const categoryWiseItemsCount = await menuCollection.countDocuments(query);
