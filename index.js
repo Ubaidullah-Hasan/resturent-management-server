@@ -45,20 +45,6 @@ async function run() {
             }
         })
 
-        app.get('/menuLimit', async (req, res) => {
-            const limit = parseInt(req.query.limit) || 5;
-            const page = parseInt(req.query.page) || 1;
-            const skip = (page - 1) * limit;
-
-            try {
-                const result = await menuCollection.find().limit(limit).skip(skip).toArray();
-                res.json(result);
-            }
-            catch (err) {
-                console.error('\n\n route: /menuLimit', err);
-                res.status(500).json({ message: 'Error fetching limited menu'});
-            }
-        })
 
         app.get("/categories", async (req, res) => {
             try {
@@ -85,6 +71,36 @@ async function run() {
             } catch (err) {
                 console.error("Error fetching distinct categories:", err);
                 res.status(500).send("Internal Server Error");
+            }
+        })
+
+        app.get('/categoryLimitItems', async (req, res) => {
+            const limit = parseInt(req.query.limit) || 5;
+            const page = parseInt(req.query.page) || 1;
+            const skip = (page - 1) * limit;
+
+            try {
+                const result = await menuCollection.find().limit(limit).skip(skip).toArray();
+                res.json(result);
+            }
+            catch (err) {
+                console.error('\n\n route: /menuLimit', err);
+                res.status(500).json({ message: 'Error fetching limited menu' });
+            }
+        })
+
+
+        app.get('/totalCount/:categoryItems', async (req, res) => {
+            const categoryItems = req.params.categoryItems;
+            const query = { category:  categoryItems};
+            
+            try {
+                const menuCount = await menuCollection.countDocuments();
+                const categoryWiseItemsCount = await menuCollection.countDocuments(query);
+                res.send({ menuCount, categoryWiseItemsCount });
+            } catch (err) {
+                console.error('\n\n route: /totalCount', err);
+                res.status(500).send({ message: 'Error fetching count documents' });
             }
         })
 
