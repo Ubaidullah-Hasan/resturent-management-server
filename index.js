@@ -31,6 +31,7 @@ async function run() {
         // mongodb collection
         const menuCollection = client.db("bistroDB").collection("menu");
         const reviewCollection = client.db("bistroDB").collection('reviews');
+        const cartCollection = client.db("bistroDB").collection('carts');
 
 
         /* ********************************
@@ -115,6 +116,35 @@ async function run() {
                 res.send(result);
             }
             catch (err) {
+                res.status(500).send("Internal Server Error");
+            }
+        })
+
+        /* ********************************
+        Carts Collection
+        ******************************** */
+
+        app.get("/carts", async (req, res) => {
+            const email = req.query.email;
+            try {
+                const query = { email: email };
+                const result = await cartCollection.find(query).toArray();
+                res.send(result);
+            } catch (err) {
+                console.error("/carts", err);
+                res.status(500).send("Internal Server Error");
+            }
+        })
+
+        app.post('/carts', async (req, res) => {
+            const item = req.body;
+            // console.log(item);
+            try {
+                const result = await cartCollection.insertOne(item);
+                res.send(result);
+            }
+            catch (err) {
+                console.log('\n\n/carts', err);
                 res.status(500).send("Internal Server Error");
             }
         })
