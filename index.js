@@ -2,7 +2,8 @@ import express from 'express';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import dotenv from 'dotenv'
 import cors from 'cors';
-dotenv.config()
+import axios from 'axios';
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -24,7 +25,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
 
@@ -153,6 +154,40 @@ async function run() {
 
 
 
+
+        /* ********************************
+                Google reCAPTCHA
+        ******************************** */
+        app.post('/api/verify-recaptcha', async (req, res) => {
+            const { recaptchaResponse } = req.body;
+            const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+
+            try {
+                const VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
+                const verificationResponse = await fetch(VERIFY_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: `secret=${secretKey}&response=${recaptchaResponse}`,
+                });
+
+                const data = await verificationResponse.json();
+
+                console.log(data);
+
+                if (data.success) {
+                    console.log('reCAPTCHA verification succeeded');
+                    res.json({ success: true, person: "Human 👨 👩" });
+                } else {
+                    console.log('reCAPTCHA verification failed');
+                    res.json({ success: false, person: "Robot 🤖" });
+                }
+            } catch (error) {
+                console.log('catch error');
+                // Handle API request error
+                console.error('Error verifying reCAPTCHA:', error);
+                res.status(500).json({ success: false });
+            }
+        });
 
 
 
