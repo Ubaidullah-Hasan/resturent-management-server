@@ -2,7 +2,6 @@ import express from 'express';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import dotenv from 'dotenv'
 import cors from 'cors';
-import axios from 'axios';
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,7 +24,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
 
 
 
@@ -48,21 +47,55 @@ async function run() {
         })
 
 
+        // app.get("/categories", async (req, res) => {
+        //     try {
+        //         const options = {
+        //             // Include only the `category` fields in each returned document
+        //             projection: { category: 1 },
+        //         };
+
+        //         const allItems = await menuCollection.find({}, options).toArray();
+        //         // console.log(allItems);
+        //         const uniqueCategories = [...new Set(allItems.map(item => item.category))];
+        //         res.send(uniqueCategories);
+        //     } catch (error) {
+        //         console.error("Error fetching distinct categories:", error);
+        //         res.status(500).send("Internal Server Error");
+        //     }
+        // });
+
         app.get("/categories", async (req, res) => {
             try {
-                const options = {
-                    // Include only the `category` fields in each returned document
-                    projection: { category: 1 },
-                };
+                // Use aggregation to group by category and count the items in each category
+                const pipeline = [
+                    {
+                        $group: {
+                            _id: "$category",
+                            totalItems: { $sum: 1 },
+                        },
+                    },
+                    {
+                        $sort: {
+                            _id: 1, // Sort by category name in ascending order
+                        },
+                    },
+                ];
 
-                const allItems = await menuCollection.find({}, options).toArray();
-                const uniqueCategories = [...new Set(allItems.map(item => item.category))];
-                res.send(uniqueCategories);
+                const categoryCounts = await menuCollection.aggregate(pipeline).toArray();
+
+                // Format the result to include both category and totalItems
+                const result = categoryCounts.map((item) => ({
+                    category: item._id,
+                    totalItems: item.totalItems,
+                }));
+
+                res.send(result);
             } catch (error) {
-                console.error("Error fetching distinct categories:", error);
+                console.error("Error fetching categories with item counts:", error);
                 res.status(500).send("Internal Server Error");
             }
         });
+
 
         app.get("/categories/:categoryName", async (req, res) => {
             const categoryName = req.params.categoryName;
