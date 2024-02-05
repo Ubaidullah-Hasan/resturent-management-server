@@ -46,23 +46,33 @@ async function run() {
             }
         })
 
+        app.post("/menu", async (req, res) => {
+            const {
+                name,
+                recipe,
+                category,
+                price,
+                image
+            } = req.body;
 
-        // app.get("/categories", async (req, res) => {
-        //     try {
-        //         const options = {
-        //             // Include only the `category` fields in each returned document
-        //             projection: { category: 1 },
-        //         };
+            const recipeData = {
+                name: name,
+                recipe: recipe,
+                category: category,
+                price: price,
+                image: image,
+            }
+            // console.log(recipeData);
 
-        //         const allItems = await menuCollection.find({}, options).toArray();
-        //         // console.log(allItems);
-        //         const uniqueCategories = [...new Set(allItems.map(item => item.category))];
-        //         res.send(uniqueCategories);
-        //     } catch (error) {
-        //         console.error("Error fetching distinct categories:", error);
-        //         res.status(500).send("Internal Server Error");
-        //     }
-        // });
+            try {
+                const result = await menuCollection.insertOne(recipeData);
+                res.send(result)
+            } catch (err) {
+                res.status(500).send({ message: 'Error fetching unique categories', error: err.message })
+            }
+
+        })
+
 
         app.get("/categories", async (req, res) => {
             try {
